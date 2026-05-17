@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housio — Vila Jinočany, Praha 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #15150e;
+  --bg2:          #1c1c13;
+  --bg3:          #222218;
+  --green:        #c8f562;
+  --glass-bg:     rgba(255,255,255,0.04);
+  --glass-border: rgba(200,245,98,0.1);
+  --glass-hover:  rgba(200,245,98,0.22);
+  --text:         #f0ede6;
+  --muted:        #7a7a6a;
+  --muted2:       #555548;
+  --danger:       #f87171;
+  --warning:      #fbbf24;
+  --card-r:       18px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between; gap: 3rem;
+  padding: 1.5rem 3rem;
+  background: rgba(21,21,14,0.82);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem; font-weight: 800;
+  color: var(--text); text-decoration: none; letter-spacing: -0.02em;
+}
+.logo span { color: var(--green); }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; margin: 0 auto; }
+.nav-links a {
+  font-size: 0.875rem; color: var(--muted);
+  text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--green); }
+.nav-cta {
+  background: var(--green); color: var(--bg);
+  font-weight: 700; font-size: 0.8rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.6rem 1.4rem; border-radius: 100px;
+  text-decoration: none; transition: opacity 0.2s, transform 0.2s;
+}
+.nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* BREADCRUMB */
+.breadcrumb {
+  padding: 7rem 3rem 0;
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.78rem; color: var(--muted);
+}
+.breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.breadcrumb a:hover { color: var(--green); }
+.breadcrumb-sep { opacity: 0.4; }
+.breadcrumb-current { color: var(--text); }
+
+/* HERO IMAGE STRIP */
+.prop-hero {
+  padding: 1.5rem 3rem 0;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 280px;
+  gap: 0.75rem;
+  border-radius: 0;
+}
+.hero-img {
+  border-radius: var(--card-r);
+  overflow: hidden;
+  background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 5rem;
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.hero-img:hover { filter: brightness(1.1); }
+.hero-img::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(21,21,14,0.2), transparent);
+  pointer-events: none;
+}
+.hero-img.main { grid-row: 1 / 2; }
+.hero-img-small { font-size: 3rem; }
+.photo-count {
+  position: absolute; bottom: 1rem; right: 1rem;
+  background: rgba(21,21,14,0.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 100px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.72rem;
+  color: var(--text);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+
+/* MAIN LAYOUT */
+.prop-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 2.5rem;
+  padding: 2.5rem 3rem 5rem;
+  align-items: start;
+  max-width: 1400px;
+}
+
+/* LEFT */
+.prop-left { display: flex; flex-direction: column; gap: 2rem; }
+
+/* Title block */
+.prop-title-block { }
+.prop-tags {
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.tag {
+  font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 0.3rem 0.8rem; border-radius: 100px;
+}
+.tag-type { background: rgba(200,245,98,0.1); color: var(--green); border: 1px solid rgba(200,245,98,0.2); }
+.tag-status-open { background: rgba(200,245,98,0.08); color: var(--green); }
+.tag-status-soon { background: rgba(251,191,36,0.1); color: var(--warning); }
+
+.prop-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+.prop-location {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.9rem; color: var(--muted);
+}
+
+/* Funded bar */
+.funded-block {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  padding: 1.5rem;
+}
+.funded-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 1rem;
+}
+.funded-pct {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem; font-weight: 800; color: var(--green);
+}
+.funded-label { font-size: 0.78rem; color: var(--muted); }
+.funded-bar-bg {
+  height: 8px; background: rgba(255,255,255,0.07);
+  border-radius: 4px; overflow: hidden; margin-bottom: 1rem;
+}
+.funded-bar-fill {
+  height: 100%; background: var(--green);
+  border-radius: 4px; width: 73%;
+  box-shadow: 0 0 12px rgba(200,245,98,0.4);
+}
+.funded-meta {
+  display: flex; justify-content: space-between;
+  font-size: 0.78rem; color: var(--muted);
+}
+.funded-meta strong { color: var(--text); }
+
+/* Metrics grid */
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+}
+.metric-card {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+  position: relative; overflow: hidden;
+}
+.metric-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--green); opacity: 0; transition: opacity 0.2s;
+}
+.metric-card:hover { border-color: var(--glass-hover); }
+.metric-card:hover::before { opacity: 1; }
+.metric-label {
+  font-size: 0.68rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem;
+}
+.metric-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.metric-val.green { color: var(--green); }
+.metric-sub { font-size: 0.72rem; color: var(--muted); }
+
+/* Tabs */
+.tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--glass-border);
+}
+.tab {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem; color: var(--muted);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: color 0.2s, border-color 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+.tab-content { padding-top: 1.5rem; }
+
+/* Description */
+.prop-description {
+  font-size: 0.95rem; color: var(--muted);
+  line-height: 1.8; font-weight: 300;
+}
+.prop-description p { margin-bottom: 1rem; }
+.prop-description p:last-child { margin-bottom: 0; }
+
+/* Details table */
+.details-table { width: 100%; }
+.details-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+}
+.details-row:last-child { border-bottom: none; }
+.details-key { color: var(--muted); }
+.details-val { font-weight: 500; text-align: right; }
+.details-val.green { color: var(--green); }
+
+/* Documents */
+.doc-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.doc-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.2s;
+}
+.doc-item:hover { border-color: var(--glass-hover); }
+.doc-left { display: flex; align-items: center; gap: 0.875rem; }
+.doc-icon {
+  width: 38px; height: 38px;
+  background: rgba(200,245,98,0.08);
+  border: 1px solid rgba(200,245,98,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.doc-name { font-size: 0.875rem; font-weight: 500; }
+.doc-meta { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+.doc-download {
+  font-size: 0.78rem; color: var(--green);
+  text-decoration: none; opacity: 0.8; transition: opacity 0.2s;
+}
+.doc-download:hover { opacity: 1; }
+
+/* Voucher holders */
+.holders-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.holder-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+}
+.holder-row:last-child { border-bottom: none; }
+.holder-left { display: flex; align-items: center; gap: 0.75rem; }
+.holder-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+  font-family: 'Playfair Display', serif;
+}
+.holder-name { font-weight: 500; }
+.holder-since { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
+.holder-share { font-size: 0.82rem; color: var(--green); font-weight: 500; }
+
+/* RIGHT sticky */
+.prop-right { position: sticky; top: 6rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* Buy card */
+.buy-card {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  overflow: hidden;
+}
+.buy-card-header {
+  background: rgba(200,245,98,0.06);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 1.25rem 1.5rem;
+}
+.buy-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+.buy-card-sub { font-size: 0.78rem; color: var(--muted); }
+.buy-card-body { padding: 1.5rem; }
+
+.buy-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+}
+.buy-row:last-of-type { border-bottom: none; margin-bottom: 1.25rem; }
+.buy-key { color: var(--muted); }
+.buy-val { font-weight: 500; }
+.buy-val.green { color: var(--green); font-size: 1rem; }
+
+.qty-selector {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.6rem 0.875rem;
+  margin-bottom: 1rem;
+}
+.qty-label { font-size: 0.78rem; color: var(--muted); }
+.qty-controls { display: flex; align-items: center; gap: 0.75rem; }
+.qty-btn {
+  width: 28px; height: 28px;
+  background: rgba(200,245,98,0.1);
+  border: 1px solid rgba(200,245,98,0.2);
+  border-radius: 8px;
+  color: var(--green); font-size: 1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.qty-btn:hover { background: rgba(200,245,98,0.2); }
+.qty-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 800; color: var(--text);
+  min-width: 24px; text-align: center;
+}
+
+.total-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  background: rgba(200,245,98,0.05);
+  border: 1px solid rgba(200,245,98,0.12);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.total-key { font-size: 0.78rem; color: var(--muted); }
+.total-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; font-weight: 800; color: var(--green);
+}
+
+.btn-buy {
+  display: block; width: 100%;
+  background: var(--green); color: var(--bg);
+  font-weight: 700; font-size: 0.95rem;
+  padding: 1rem; border-radius: 12px;
+  text-align: center; text-decoration: none;
+  border: none; cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-buy:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.buy-note {
+  font-size: 0.72rem; color: var(--muted);
+  text-align: center; margin-top: 0.875rem; line-height: 1.5;
+}
+
+/* Yield calculator */
+.calc-card {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  padding: 1.5rem;
+}
+.calc-title {
+  font-size: 0.875rem; font-weight: 500;
+  margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.calc-input-wrap { margin-bottom: 1rem; }
+.calc-input-label {
+  font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.4rem;
+}
+.calc-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: var(--text);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.calc-input:focus { border-color: rgba(200,245,98,0.35); }
+.calc-results {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+  margin-top: 1rem;
+}
+.calc-result {
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.875rem;
+}
+.calc-result-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem; font-weight: 800; color: var(--green); margin-bottom: 0.2rem;
+}
+.calc-result-key { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em; }
+
+/* Info pills */
+.info-pills {
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.info-pill {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+}
+.info-pill-icon { font-size: 1rem; flex-shrink: 0; }
+.info-pill-text { color: var(--muted); line-height: 1.4; }
+.info-pill-text strong { color: var(--text); }
+
+@media (max-width: 1024px) {
+  .prop-layout { grid-template-columns: 1fr; }
+  .prop-right { position: static; }
+  .prop-hero { grid-template-columns: 1fr 1fr; grid-template-rows: 220px 220px; }
+  .hero-img.main { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .breadcrumb { padding: 6rem 1.5rem 0; }
+  .prop-hero { padding: 1rem 1.5rem 0; grid-template-columns: 1fr; grid-template-rows: 240px 160px; }
+  .hero-img.main { grid-column: auto; }
+  .prop-layout { padding: 1.5rem; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo"><span>H</span>ousio</a>
+  <ul class="nav-links">
+    <li><a href="index.html#properties">Nemovitosti</a></li>
+    <li><a href="index.html#how">Jak to funguje</a></li>
+    <li><a href="index.html#vouchers">Vouchery</a></li>
+  </ul>
+  <a href="dashboard.html" class="nav-cta">Investor Login</a>
+</nav>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="index.html">Housio</a>
+  <span class="breadcrumb-sep">/</span>
+  <a href="index.html#properties">Nemovitosti</a>
+  <span class="breadcrumb-sep">/</span>
+  <span class="breadcrumb-current">Vila Jinočany</span>
+</div>
+
+<!-- PHOTO STRIP -->
+<div class="prop-hero">
+  <div class="hero-img main" style="background:linear-gradient(135deg,#1e1e14,#2a2a1a)">
+    🏡
+    <span class="photo-count">📷 8 fotek</span>
+  </div>
+  <div class="hero-img hero-img-small" style="background:linear-gradient(135deg,#1a1e14,#222a18)">🌳</div>
+  <div class="hero-img hero-img-small" style="background:linear-gradient(135deg,#141a1e,#182228)">🛋️</div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="prop-layout">
+
+  <!-- LEFT -->
+  <div class="prop-left">
+
+    <!-- Title -->
+    <div class="prop-title-block">
+      <div class="prop-tags">
+        <span class="tag tag-type">Frakční vlastnictví</span>
+        <span class="tag tag-status-open">● Otevřeno k investici</span>
+      </div>
+      <h1 class="prop-title">Rodinná vila s pozemkem<br>682 m², Jinočany</h1>
+      <div class="prop-location">📍 Jinočany, Praha 5 — západ · 15 min centrum</div>
+    </div>
+
+    <!-- Funded bar -->
+    <div class="funded-block">
+      <div class="funded-header">
+        <div>
+          <div class="funded-pct">73 %</div>
+          <div class="funded-label">financováno</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:0.82rem;color:var(--text);font-weight:500">17 390 000 Kč</div>
+          <div style="font-size:0.72rem;color:var(--muted)">z 23 820 000 Kč</div>
+        </div>
+      </div>
+      <div class="funded-bar-bg"><div class="funded-bar-fill"></div></div>
+      <div class="funded-meta">
+        <span><strong>42</strong> investorů</span>
+        <span>Zbývá <strong>6 430 000 Kč</strong></span>
+        <span>Uzavírá se <strong>30. 6. 2026</strong></span>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Výnos p.a.</div>
+        <div class="metric-val green">10,4 %</div>
+        <div class="metric-sub">z nájemního výnosu</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Hodnota nemovitosti</div>
+        <div class="metric-val">23,82 M</div>
+        <div class="metric-sub">aktuální odhad · Kč</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Cena voucheru</div>
+        <div class="metric-val">2 000 €</div>
+        <div class="metric-sub">min. investice</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Nájemní výnos / m²</div>
+        <div class="metric-val green">185 Kč</div>
+        <div class="metric-sub">měsíčně</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Typ smlouvy</div>
+        <div class="metric-val" style="font-size:1rem">Voucher</div>
+        <div class="metric-sub">sdílený výnos · roční</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Výplata výnosu</div>
+        <div class="metric-val" style="font-size:1rem">Měsíčně</div>
+        <div class="metric-sub">vždy 1. v měsíci</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'popis')">Popis</button>
+        <button class="tab" onclick="switchTab(this,'detaily')">Detaily</button>
+        <button class="tab" onclick="switchTab(this,'dokumenty')">Dokumenty</button>
+        <button class="tab" onclick="switchTab(this,'investori')">Investoři</button>
+      </div>
+
+      <!-- POPIS -->
+      <div class="tab-content" id="tab-popis">
+        <div class="prop-description">
+          <p>Reprezentativní rodinná vila v klidné lokalitě Jinočany, pouhých 15 minut od centra Prahy. Nemovitost nabízí 262 m² obytné plochy na pozemku 682 m² se zahradou, terasou a garáží pro dvě auta.</p>
+          <p>Vila je plně zrekonstruována v roce 2021 — nová střecha, okna, podlahy, kompletní rozvody. Dlouhodobě pronajata solventnímu nájemci (smlouva do 12/2027 s opcí prodloužení). Nájemní výnos činí 44 500 Kč měsíčně.</p>
+          <p>Investice do tohoto voucheru přináší proporční podíl na čistém nájemním výnosu po odečtení správy nemovitosti (zajišťuje Housio za paušál 6 %). Hodnota nemovitosti je zajištěna zápisem v katastru, smlouva o sdíleném výnosu je právně vymahatelná dle českého práva.</p>
+        </div>
+      </div>
+
+      <!-- DETAILY -->
+      <div class="tab-content" id="tab-detaily" style="display:none">
+        <div class="details-table">
+          <div class="details-row"><span class="details-key">Typ nemovitosti</span><span class="details-val">Rodinná vila</span></div>
+          <div class="details-row"><span class="details-key">Obytná plocha</span><span class="details-val">262 m²</span></div>
+          <div class="details-row"><span class="details-key">Pozemek</span><span class="details-val">682 m²</span></div>
+          <div class="details-row"><span class="details-key">Rok výstavby</span><span class="details-val">1998</span></div>
+          <div class="details-row"><span class="details-key">Rekonstrukce</span><span class="details-val">2021 (kompletní)</span></div>
+          <div class="details-row"><span class="details-key">Pokoje</span><span class="details-val">5+kk · 4 ložnice</span></div>
+          <div class="details-row"><span class="details-key">Garáž</span><span class="details-val">Ano · 2 auta</span></div>
+          <div class="details-row"><span class="details-key">Energetická třída</span><span class="details-val">B</span></div>
+          <div class="details-row"><span class="details-key">Pronájem</span><span class="details-val green">Plně pronajato</span></div>
+          <div class="details-row"><span class="details-key">Nájemní smlouva do</span><span class="details-val">12/2027 + opce</span></div>
+          <div class="details-row"><span class="details-key">Měsíční nájem</span><span class="details-val green">44 500 Kč</span></div>
+          <div class="details-row"><span class="details-key">Správa nemovitosti</span><span class="details-val">Housio (6 % p.a.)</span></div>
+          <div class="details-row"><span class="details-key">Katastr nemovitostí</span><span class="details-val green">✓ Doloženo (LV)</span></div>
+          <div class="details-row"><span class="details-key">Právní základ výnosu</span><span class="details-val">Smlouva o sdíleném výnosu</span></div>
+        </div>
+      </div>
+
+      <!-- DOKUMENTY -->
+      <div class="tab-content" id="tab-dokumenty" style="display:none">
+        <div class="doc-list">
+          <div class="doc-item">
+            <div class="doc-left">
+              <div class="doc-icon">📄</div>
+              <div>
+                <div class="doc-name">Výpis z katastru nemovitostí (LV)</div>
+                <div class="doc-meta">PDF · 1,2 MB · aktualizováno 3. 5. 2026</div>
+              </div>
+            </div>
+            <a href="#" class="doc-download">⬇ Stáhnout</a>
+          </div>
+          <div class="doc-item">
+            <div class="doc-left">
+              <div class="doc-icon">📋</div>
+              <div>
+                <div class="doc-name">Vzorová smlouva o sdíleném výnosu</div>
+                <div class="doc-meta">PDF · 0,8 MB · verze 2.1</div>
+              </div>
+            </div>
+            <a href="#" class="doc-download">⬇ Stáhnout</a>
+          </div>
+          <div class="doc-item">
+            <div class="doc-left">
+              <div class="doc-icon">🏠</div>
+              <div>
+                <div class="doc-name">Nájemní smlouva (anonymizovaná)</div>
+                <div class="doc-meta">PDF · 0,5 MB · platná do 12/2027</div>
+              </div>
+            </div>
+            <a href="#" class="doc-download">⬇ Stáhnout</a>
+          </div>
+          <div class="doc-item">
+            <div class="doc-left">
+              <div class="doc-icon">📊</div>
+              <div>
+                <div class="doc-name">Znalecký posudek nemovitosti</div>
+                <div class="doc-meta">PDF · 3,4 MB · únor 2026</div>
+              </div>
+            </div>
+            <a href="#" class="doc-download">⬇ Stáhnout</a>
+          </div>
+          <div class="doc-item">
+            <div class="doc-left">
+              <div class="doc-icon">📈</div>
+              <div>
+                <div class="doc-name">Finanční model výnosu 2026–2030</div>
+                <div class="doc-meta">XLSX · 0,3 MB</div>
+              </div>
+            </div>
+            <a href="#" class="doc-download">⬇ Stáhnout</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVESTOŘI -->
+      <div class="tab-content" id="tab-investori" style="display:none">
+        <div class="holders-list">
+          <div class="holder-row">
+            <div class="holder-left">
+              <div class="holder-avatar" style="background:rgba(200,245,98,0.15);color:var(--green)">JN</div>
+              <div>
+                <div class="holder-name">Jan N.</div>
+                <div class="holder-since">od 12. 5. 2026</div>
+              </div>
+            </div>
+            <div class="holder-share">2 vouchery · 0,84 %</div>
+          </div>
+          <div class="holder-row">
+            <div class="holder-left">
+              <div class="holder-avatar" style="background:rgba(96,165,250,0.15);color:#60a5fa">MK</div>
+              <div>
+                <div class="holder-name">Martin K.</div>
+                <div class="holder-since">od 3. 4. 2026</div>
+              </div>
+            </div>
+            <div class="holder-share">5 voucherů · 2,10 %</div>
+          </div>
+          <div class="holder-row">
+            <div class="holder-left">
+              <div class="holder-avatar" style="background:rgba(251,191,36,0.15);color:var(--warning)">LP</div>
+              <div>
+                <div class="holder-name">Lucie P.</div>
+                <div class="holder-since">od 18. 3. 2026</div>
+              </div>
+            </div>
+            <div class="holder-share">3 vouchery · 1,26 %</div>
+          </div>
+          <div class="holder-row">
+            <div class="holder-left">
+              <div class="holder-avatar" style="background:rgba(167,139,250,0.15);color:#a78bfa">TO</div>
+              <div>
+                <div class="holder-name">Tomáš O.</div>
+                <div class="holder-since">od 1. 2. 2026</div>
+              </div>
+            </div>
+            <div class="holder-share">8 voucherů · 3,36 %</div>
+          </div>
+          <div class="holder-row" style="justify-content:center;color:var(--muted);font-size:0.82rem;padding:1rem 0">
+            + 38 dalších investorů · celkem 42
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="prop-right">
+
+    <!-- Buy card -->
+    <div class="buy-card">
+      <div class="buy-card-header">
+        <div class="buy-card-title">Koupit voucher</div>
+        <div class="buy-card-sub">Smluvní podíl na výnosu z pronájmu</div>
+      </div>
+      <div class="buy-card-body">
+        <div class="buy-row"><span class="buy-key">Cena / voucher</span><span class="buy-val green">2 000 EUR</span></div>
+        <div class="buy-row"><span class="buy-key">Výnos p.a.</span><span class="buy-val">10,4 %</span></div>
+        <div class="buy-row"><span class="buy-key">Výplata</span><span class="buy-val">Měsíčně · 1. v měsíci</span></div>
+        <div class="buy-row"><span class="buy-key">Dostupných</span><span class="buy-val">27 voucherů</span></div>
+
+        <div class="qty-selector">
+          <span class="qty-label">Počet voucherů</span>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <span class="qty-val" id="qty">1</span>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+
+        <div class="total-row">
+          <span class="total-key">Celkem k úhradě</span>
+          <span class="total-val" id="total">2 000 EUR</span>
+        </div>
+
+        <button class="btn-buy" onclick="window.location.href='dashboard.html'">
+          Koupit voucher →
+        </button>
+        <p class="buy-note">
+          Pro nákup je nutné mít <a href="dashboard.html" style="color:var(--green)">ověřený účet (KYC)</a>.<br>
+          Voucher = smlouva o sdíleném výnosu dle českého práva.
+        </p>
+      </div>
+    </div>
+
+    <!-- Kalkulačka -->
+    <div class="calc-card">
+      <div class="calc-title">🧮 Kalkulačka výnosu</div>
+      <div class="calc-input-wrap">
+        <div class="calc-input-label">Investice (EUR)</div>
+        <input class="calc-input" type="number" id="calcInput" value="2000" min="2000" step="2000" oninput="calcYield()">
+      </div>
+      <div class="calc-results">
+        <div class="calc-result">
+          <div class="calc-result-val" id="calcMonthly">174 €</div>
+          <div class="calc-result-key">Měsíční výnos</div>
+        </div>
+        <div class="calc-result">
+          <div class="calc-result-val" id="calcYearly">2 080 €</div>
+          <div class="calc-result-key">Roční výnos</div>
+        </div>
+        <div class="calc-result">
+          <div class="calc-result-val" id="calc3y">6 240 €</div>
+          <div class="calc-result-key">Za 3 roky</div>
+        </div>
+        <div class="calc-result">
+          <div class="calc-result-val" id="calc5y">10 400 €</div>
+          <div class="calc-result-key">Za 5 let</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info pills -->
+    <div class="info-pills">
+      <div class="info-pill">
+        <span class="info-pill-icon">🛡️</span>
+        <span class="info-pill-text"><strong>Bez MiCA licence</strong> — voucher není kryptoaktivum ani cenný papír. Platí smluvní právo ČR.</span>
+      </div>
+      <div class="info-pill">
+        <span class="info-pill-icon">📑</span>
+        <span class="info-pill-text"><strong>Nemovitost v katastru</strong> — výpis z KN doložen, zástavní právo v prospěch investorů.</span>
+      </div>
+      <div class="info-pill">
+        <span class="info-pill-icon">🔄</span>
+        <span class="info-pill-text"><strong>Převoditelný voucher</strong> — lze prodat dalšímu investorovi na platformě kdykoliv.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Tabs
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).style.display = 'block';
+}
+
+// Qty selector
+let qty = 1;
+function changeQty(delta) {
+  qty = Math.max(1, Math.min(27, qty + delta));
+  document.getElementById('qty').textContent = qty;
+  document.getElementById('total').textContent = (qty * 2000).toLocaleString('cs-CZ') + ' EUR';
+  document.getElementById('calcInput').value = qty * 2000;
+  calcYield();
+}
+
+// Yield calculator
+function calcYield() {
+  const inv = parseFloat(document.getElementById('calcInput').value) || 0;
+  const rate = 0.104;
+  const yearly = inv * rate;
+  const monthly = yearly / 12;
+  document.getElementById('calcMonthly').textContent = Math.round(monthly).toLocaleString('cs-CZ') + ' €';
+  document.getElementById('calcYearly').textContent  = Math.round(yearly).toLocaleString('cs-CZ') + ' €';
+  document.getElementById('calc3y').textContent      = Math.round(yearly * 3).toLocaleString('cs-CZ') + ' €';
+  document.getElementById('calc5y').textContent      = Math.round(yearly * 5).toLocaleString('cs-CZ') + ' €';
+}
+calcYield();
+</script>
+
+</body>
+</html>
