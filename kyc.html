@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housio — Ověření identity (KYC)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #15150e;
+  --bg2:          #1c1c13;
+  --bg3:          #222218;
+  --green:        #c8f562;
+  --glass-bg:     rgba(255,255,255,0.04);
+  --glass-border: rgba(200,245,98,0.1);
+  --glass-hover:  rgba(200,245,98,0.22);
+  --text:         #f0ede6;
+  --muted:        #7a7a6a;
+  --muted2:       #555548;
+  --danger:       #f87171;
+  --warning:      #fbbf24;
+  --card-r:       18px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh;
+}
+
+/* TOP BAR */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(21,21,14,0.9);
+  backdrop-filter: blur(20px);
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-logo a {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--text); text-decoration: none;
+}
+.topbar-logo a span { color: var(--green); }
+.topbar-right {
+  display: flex; align-items: center; gap: 1rem;
+  font-size: 0.8rem; color: var(--muted);
+}
+.topbar-right a { color: var(--green); text-decoration: none; }
+
+/* PROGRESS STEPPER */
+.stepper-wrap {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 1.75rem 3rem;
+}
+.stepper {
+  display: flex; align-items: center;
+  max-width: 700px; margin: 0 auto;
+}
+.step {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; position: relative;
+}
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute; top: 18px; left: calc(50% + 20px);
+  right: calc(-50% + 20px);
+  height: 1px;
+  background: var(--glass-border);
+  transition: background 0.4s;
+}
+.step.done:not(:last-child)::after { background: var(--green); }
+
+.step-circle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700;
+  border: 1px solid var(--muted2);
+  color: var(--muted);
+  background: var(--bg2);
+  margin-bottom: 0.6rem;
+  transition: all 0.3s;
+  position: relative; z-index: 2;
+}
+.step.done .step-circle {
+  background: var(--green); border-color: var(--green);
+  color: var(--bg);
+}
+.step.active .step-circle {
+  background: rgba(200,245,98,0.12);
+  border-color: var(--green); color: var(--green);
+  box-shadow: 0 0 0 4px rgba(200,245,98,0.08);
+}
+.step-label {
+  font-size: 0.68rem; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--muted2);
+  text-align: center; line-height: 1.3;
+}
+.step.active .step-label { color: var(--green); }
+.step.done .step-label  { color: var(--muted); }
+
+/* MAIN */
+.kyc-main {
+  max-width: 720px; margin: 0 auto;
+  padding: 3rem 2rem 6rem;
+}
+
+/* Section heading */
+.kyc-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem; font-weight: 800;
+  letter-spacing: -0.02em; margin-bottom: 0.5rem;
+}
+.kyc-section-sub {
+  font-size: 0.9rem; color: var(--muted);
+  margin-bottom: 2.5rem; line-height: 1.6; font-weight: 300;
+}
+
+/* Info banner */
+.info-banner {
+  display: flex; align-items: flex-start; gap: 0.875rem;
+  background: rgba(200,245,98,0.05);
+  border: 1px solid rgba(200,245,98,0.15);
+  border-radius: var(--card-r);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 2rem;
+}
+.info-banner-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+.info-banner-text { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+.info-banner-text strong { color: var(--text); }
+
+/* Card */
+.kyc-card {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.kyc-card-header {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+.kyc-card-icon {
+  width: 38px; height: 38px;
+  background: rgba(200,245,98,0.08);
+  border: 1px solid rgba(200,245,98,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.kyc-card-title { font-size: 0.95rem; font-weight: 500; }
+.kyc-card-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+.kyc-card-body  { padding: 1.5rem; }
+
+/* Form */
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block; font-size: 0.7rem;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.4rem;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: rgba(200,245,98,0.4);
+  box-shadow: 0 0 0 3px rgba(200,245,98,0.05);
+}
+.form-input::placeholder { color: var(--muted); }
+.form-select {
+  width: 100%; appearance: none;
+  background: var(--bg3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7a6a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 1rem center;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.8rem 2.5rem 0.8rem 1rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem; outline: none;
+  cursor: pointer;
+}
+.form-select:focus { border-color: rgba(200,245,98,0.4); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+.form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.875rem; }
+
+/* Upload zone */
+.upload-zone {
+  border: 1.5px dashed rgba(200,245,98,0.2);
+  border-radius: 14px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: rgba(200,245,98,0.02);
+  position: relative;
+}
+.upload-zone:hover {
+  border-color: rgba(200,245,98,0.4);
+  background: rgba(200,245,98,0.04);
+}
+.upload-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+.upload-icon { font-size: 2.5rem; margin-bottom: 0.875rem; }
+.upload-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.4rem; }
+.upload-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.upload-formats {
+  display: flex; gap: 0.4rem; justify-content: center;
+  flex-wrap: wrap; margin-top: 1rem;
+}
+.upload-format {
+  font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 6px;
+  background: rgba(255,255,255,0.05); color: var(--muted);
+  border: 1px solid var(--glass-border);
+}
+
+/* Doc type selector */
+.doc-type-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.doc-type-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  padding: 1rem 0.75rem;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif; color: var(--muted);
+  font-size: 0.78rem; text-align: center; line-height: 1.3;
+}
+.doc-type-btn:hover { border-color: var(--glass-hover); color: var(--text); }
+.doc-type-btn.selected {
+  border-color: rgba(200,245,98,0.4);
+  background: rgba(200,245,98,0.06);
+  color: var(--green);
+}
+.doc-type-icon { font-size: 1.5rem; }
+
+/* Upload preview */
+.upload-preview {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(200,245,98,0.05);
+  border: 1px solid rgba(200,245,98,0.15);
+  border-radius: 10px; padding: 0.875rem 1rem;
+  margin-top: 0.875rem;
+}
+.upload-preview-left { display: flex; align-items: center; gap: 0.75rem; }
+.upload-preview-icon { font-size: 1.2rem; }
+.upload-preview-name { font-size: 0.82rem; font-weight: 500; }
+.upload-preview-size { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
+.upload-preview-check { color: var(--green); font-size: 1rem; }
+
+/* PEP / AML */
+.radio-group { display: flex; flex-direction: column; gap: 0.75rem; }
+.radio-item {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.radio-item:hover { border-color: var(--glass-hover); }
+.radio-item.selected {
+  border-color: rgba(200,245,98,0.3);
+  background: rgba(200,245,98,0.04);
+}
+.radio-input {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--muted2);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.2s;
+}
+.radio-item.selected .radio-input {
+  border-color: var(--green);
+  background: rgba(200,245,98,0.1);
+}
+.radio-item.selected .radio-input::after {
+  content: ''; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--green);
+}
+.radio-text { font-size: 0.875rem; }
+.radio-text strong { font-weight: 500; }
+.radio-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
+/* Consent */
+.consent-block {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.consent-title {
+  font-size: 0.875rem; font-weight: 500;
+  margin-bottom: 1rem;
+}
+.consent-item {
+  display: flex; align-items: flex-start; gap: 0.875rem;
+  margin-bottom: 0.875rem;
+}
+.consent-item:last-child { margin-bottom: 0; }
+.checkbox-input {
+  width: 18px; height: 18px; flex-shrink: 0;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: 5px; appearance: none;
+  cursor: pointer; position: relative; margin-top: 1px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.checkbox-input:checked {
+  background: var(--green); border-color: var(--green);
+}
+.checkbox-input:checked::after {
+  content: '✓'; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 0.68rem; color: var(--bg); font-weight: 700;
+}
+.consent-text { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.consent-text a { color: var(--green); text-decoration: none; }
+
+/* Navigation buttons */
+.kyc-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 2rem;
+}
+.btn-back {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: none; border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 0.85rem 1.5rem;
+  color: var(--muted); font-size: 0.9rem;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-back:hover { border-color: var(--glass-hover); color: var(--text); }
+.btn-next {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--green); color: var(--bg);
+  border: none; border-radius: 12px;
+  padding: 0.85rem 2rem;
+  font-weight: 700; font-size: 0.9rem;
+  cursor: pointer; transition: opacity 0.2s, transform 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-next:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* Step panels */
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+/* Success screen */
+.success-screen {
+  text-align: center; padding: 3rem 2rem;
+}
+.success-icon { font-size: 4rem; margin-bottom: 1.5rem; }
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem; font-weight: 800;
+  margin-bottom: 0.875rem; letter-spacing: -0.02em;
+}
+.success-sub {
+  font-size: 0.95rem; color: var(--muted);
+  max-width: 400px; margin: 0 auto 2.5rem; line-height: 1.7;
+}
+.success-steps {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  max-width: 380px; margin: 0 auto 2.5rem; text-align: left;
+}
+.success-step {
+  display: flex; align-items: center; gap: 0.875rem;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 0.875rem 1rem;
+  font-size: 0.82rem;
+}
+.success-step-icon { font-size: 1rem; flex-shrink: 0; }
+.success-step-text { color: var(--muted); }
+.success-step-text strong { color: var(--text); }
+.btn-dashboard {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--green); color: var(--bg);
+  font-weight: 700; font-size: 0.95rem;
+  padding: 1rem 2.5rem; border-radius: 12px;
+  text-decoration: none; transition: opacity 0.2s, transform 0.2s;
+}
+.btn-dashboard:hover { opacity: 0.88; transform: translateY(-1px); }
+
+@media (max-width: 768px) {
+  .topbar { padding: 1rem 1.5rem; }
+  .stepper-wrap { padding: 1.25rem 1.5rem; }
+  .step-label { display: none; }
+  .kyc-main { padding: 2rem 1.25rem 4rem; }
+  .form-row, .form-row-3 { grid-template-columns: 1fr; }
+  .doc-type-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-logo"><a href="index.html"><span>H</span>ousio</a></div>
+  <div class="topbar-right">
+    Přihlášen jako <strong style="color:var(--text)">jan@novak.cz</strong> ·
+    <a href="dashboard.html">Dashboard</a>
+  </div>
+</header>
+
+<!-- STEPPER -->
+<div class="stepper-wrap">
+  <div class="stepper" id="stepper">
+    <div class="step done" id="s1">
+      <div class="step-circle">✓</div>
+      <div class="step-label">Registrace</div>
+    </div>
+    <div class="step active" id="s2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Osobní údaje</div>
+    </div>
+    <div class="step" id="s3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Doklad totožnosti</div>
+    </div>
+    <div class="step" id="s4">
+      <div class="step-circle">4</div>
+      <div class="step-label">AML otázky</div>
+    </div>
+    <div class="step" id="s5">
+      <div class="step-circle">5</div>
+      <div class="step-label">Souhlasy</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="kyc-main">
+
+  <!-- KROK 2 — Osobní údaje -->
+  <div class="step-panel active" id="panel-2">
+    <h2 class="kyc-section-title">Osobní údaje</h2>
+    <p class="kyc-section-sub">Vyplňte přesně dle dokladu totožnosti. Údaje jsou potřebné pro splnění zákonné AML povinnosti.</p>
+
+    <div class="info-banner">
+      <span class="info-banner-icon">🔐</span>
+      <p class="info-banner-text"><strong>Vaše data jsou v bezpečí.</strong> Informace slouží výhradně pro ověření identity dle zákona č. 253/2008 Sb. o AML. Třetím stranám je neposkytujeme.</p>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">👤</div>
+        <div>
+          <div class="kyc-card-title">Základní informace</div>
+          <div class="kyc-card-sub">Přesně dle dokladu totožnosti</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Jméno</label>
+            <input class="form-input" type="text" placeholder="Jan" value="Jan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Příjmení</label>
+            <input class="form-input" type="text" placeholder="Novák" value="Novák">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Datum narození</label>
+            <input class="form-input" type="date" value="1985-03-15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Státní příslušnost</label>
+            <select class="form-select">
+              <option selected>Česká republika</option>
+              <option>Slovensko</option>
+              <option>Německo</option>
+              <option>Jiná</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rodné číslo (nebo ekvivalent)</label>
+          <input class="form-input" type="text" placeholder="850315/1234">
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">🏠</div>
+        <div>
+          <div class="kyc-card-title">Trvalé bydliště</div>
+          <div class="kyc-card-sub">Adresa dle dokladu</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="form-group">
+          <label class="form-label">Ulice a číslo popisné</label>
+          <input class="form-input" type="text" placeholder="Václavské náměstí 1">
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">Město</label>
+            <input class="form-input" type="text" placeholder="Praha">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PSČ</label>
+            <input class="form-input" type="text" placeholder="110 00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Země</label>
+            <select class="form-select">
+              <option selected>CZ</option>
+              <option>SK</option>
+              <option>DE</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">💼</div>
+        <div>
+          <div class="kyc-card-title">Zdroj příjmů</div>
+          <div class="kyc-card-sub">Povinný údaj dle AML zákona</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Profesní status</label>
+            <select class="form-select">
+              <option>Zaměstnanec</option>
+              <option>OSVČ / živnostník</option>
+              <option>Jednatel / majitel firmy</option>
+              <option>Investor</option>
+              <option>Důchodce</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Obor činnosti</label>
+            <input class="form-input" type="text" placeholder="IT / technologie">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Původ investovaných prostředků</label>
+          <select class="form-select">
+            <option>Příjem ze zaměstnání</option>
+            <option>Příjem z podnikání</option>
+            <option>Dědictví / dar</option>
+            <option>Prodej majetku</option>
+            <option>Úspory</option>
+            <option>Jiné</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-nav">
+      <button class="btn-back" onclick="window.location.href='login.html'">← Zpět</button>
+      <button class="btn-next" onclick="goStep(3)">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- KROK 3 — Doklad totožnosti -->
+  <div class="step-panel" id="panel-3">
+    <h2 class="kyc-section-title">Doklad totožnosti</h2>
+    <p class="kyc-section-sub">Nahrajte platný doklad. Snímek musí být čitelný, nepřekrytý a platný. Přijímáme OP, pas a řidičský průkaz.</p>
+
+    <div class="info-banner">
+      <span class="info-banner-icon">📷</span>
+      <p class="info-banner-text"><strong>Tipy pro kvalitní snímek:</strong> Rovné osvětlení, žádný odraz. Celý doklad viditelný. Minimální rozlišení 1 MP. Soubor do 10 MB.</p>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">🪪</div>
+        <div>
+          <div class="kyc-card-title">Typ dokladu</div>
+          <div class="kyc-card-sub">Vyberte, jaký doklad budete nahrávat</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="doc-type-grid">
+          <button class="doc-type-btn selected" onclick="selectDoc(this)">
+            <span class="doc-type-icon">🪪</span>
+            Občanský průkaz
+          </button>
+          <button class="doc-type-btn" onclick="selectDoc(this)">
+            <span class="doc-type-icon">📘</span>
+            Cestovní pas
+          </button>
+          <button class="doc-type-btn" onclick="selectDoc(this)">
+            <span class="doc-type-icon">🚗</span>
+            Řidičský průkaz
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">📄</div>
+        <div>
+          <div class="kyc-card-title">Přední strana</div>
+          <div class="kyc-card-sub">Strana s fotografií a osobními údaji</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="upload-zone" id="drop1" ondragover="event.preventDefault()" ondrop="handleDrop(event,'drop1','prev1')">
+          <input type="file" accept="image/*,.pdf" onchange="handleFile(this,'prev1')">
+          <div class="upload-icon">📤</div>
+          <div class="upload-title">Přetáhněte soubor nebo klikněte</div>
+          <div class="upload-sub">Fotografie nebo scan přední strany dokladu</div>
+          <div class="upload-formats">
+            <span class="upload-format">JPG</span>
+            <span class="upload-format">PNG</span>
+            <span class="upload-format">PDF</span>
+            <span class="upload-format">max 10 MB</span>
+          </div>
+        </div>
+        <div id="prev1" style="display:none">
+          <div class="upload-preview">
+            <div class="upload-preview-left">
+              <span class="upload-preview-icon">📄</span>
+              <div>
+                <div class="upload-preview-name" id="prev1-name">OP_predni.jpg</div>
+                <div class="upload-preview-size" id="prev1-size">1,4 MB</div>
+              </div>
+            </div>
+            <span class="upload-preview-check">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">📄</div>
+        <div>
+          <div class="kyc-card-title">Zadní strana</div>
+          <div class="kyc-card-sub">Strana s adresou a strojově čitelnou zónou (MRZ)</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="upload-zone">
+          <input type="file" accept="image/*,.pdf" onchange="handleFile(this,'prev2')">
+          <div class="upload-icon">📤</div>
+          <div class="upload-title">Přetáhněte soubor nebo klikněte</div>
+          <div class="upload-sub">Fotografie nebo scan zadní strany dokladu</div>
+          <div class="upload-formats">
+            <span class="upload-format">JPG</span>
+            <span class="upload-format">PNG</span>
+            <span class="upload-format">PDF</span>
+            <span class="upload-format">max 10 MB</span>
+          </div>
+        </div>
+        <div id="prev2" style="display:none">
+          <div class="upload-preview">
+            <div class="upload-preview-left">
+              <span class="upload-preview-icon">📄</span>
+              <div>
+                <div class="upload-preview-name" id="prev2-name"></div>
+                <div class="upload-preview-size" id="prev2-size"></div>
+              </div>
+            </div>
+            <span class="upload-preview-check">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">🤳</div>
+        <div>
+          <div class="kyc-card-title">Selfie s dokladem</div>
+          <div class="kyc-card-sub">Vaše fotografie s dokladem v ruce pro živostní kontrolu</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="upload-zone">
+          <input type="file" accept="image/*" capture="user" onchange="handleFile(this,'prev3')">
+          <div class="upload-icon">🤳</div>
+          <div class="upload-title">Vyfotit nebo nahrát selfie</div>
+          <div class="upload-sub">Držte doklad vedle obličeje. Tvář i doklad musí být zřetelné.</div>
+          <div class="upload-formats">
+            <span class="upload-format">JPG</span>
+            <span class="upload-format">PNG</span>
+            <span class="upload-format">max 10 MB</span>
+          </div>
+        </div>
+        <div id="prev3" style="display:none">
+          <div class="upload-preview">
+            <div class="upload-preview-left">
+              <span class="upload-preview-icon">🤳</span>
+              <div>
+                <div class="upload-preview-name" id="prev3-name"></div>
+                <div class="upload-preview-size" id="prev3-size"></div>
+              </div>
+            </div>
+            <span class="upload-preview-check">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-nav">
+      <button class="btn-back" onclick="goStep(2)">← Zpět</button>
+      <button class="btn-next" onclick="goStep(4)">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- KROK 4 — AML otázky -->
+  <div class="step-panel" id="panel-4">
+    <h2 class="kyc-section-title">AML otázky</h2>
+    <p class="kyc-section-sub">Povinné otázky dle zákona č. 253/2008 Sb. o AML. Odpovězte prosím pravdivě.</p>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">🏛️</div>
+        <div>
+          <div class="kyc-card-title">Politicky exponovaná osoba (PEP)</div>
+          <div class="kyc-card-sub">Zákonná povinnost identifikovat PEP dle AML směrnice EU</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6">Jste vy, nebo někdo z vašich blízkých příbuzných, osobou zastávající nebo v posledních 12 měsících zastávající významnou veřejnou funkci (poslanec, senátor, člen vlády, soudce, vedoucí státního orgánu, apod.)?</p>
+        <div class="radio-group" id="pep-group">
+          <div class="radio-item" onclick="selectRadio(this,'pep-group')">
+            <div class="radio-input"></div>
+            <div class="radio-text">
+              <strong>Ne</strong>
+              <div class="radio-sub">Nejsem PEP ani nemám blízkou osobu, která by PEP byla</div>
+            </div>
+          </div>
+          <div class="radio-item" onclick="selectRadio(this,'pep-group')">
+            <div class="radio-input"></div>
+            <div class="radio-text">
+              <strong>Ano, jsem PEP</strong>
+              <div class="radio-sub">Zastávám nebo jsem zastával/a významnou veřejnou funkci</div>
+            </div>
+          </div>
+          <div class="radio-item" onclick="selectRadio(this,'pep-group')">
+            <div class="radio-input"></div>
+            <div class="radio-text">
+              <strong>Rodinný příslušník PEP</strong>
+              <div class="radio-sub">Blízká osoba zastává nebo zastávala takovou funkci</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">🌍</div>
+        <div>
+          <div class="kyc-card-title">Daňová rezidence</div>
+          <div class="kyc-card-sub">Pro případy FATCA / CRS reportingu</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Země daňové rezidence</label>
+            <select class="form-select">
+              <option selected>Česká republika</option>
+              <option>Slovensko</option>
+              <option>Německo</option>
+              <option>USA</option>
+              <option>Jiná</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Daňové identifikační číslo (TIN)</label>
+            <input class="form-input" type="text" placeholder="CZ8503151234">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jste daňovým rezidentem USA?</label>
+          <div class="radio-group" id="us-group" style="flex-direction:row;gap:0.5rem;margin-top:0.5rem">
+            <div class="radio-item" onclick="selectRadio(this,'us-group')" style="flex:1">
+              <div class="radio-input"></div>
+              <div class="radio-text"><strong>Ne</strong></div>
+            </div>
+            <div class="radio-item" onclick="selectRadio(this,'us-group')" style="flex:1">
+              <div class="radio-input"></div>
+              <div class="radio-text"><strong>Ano</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-card">
+      <div class="kyc-card-header">
+        <div class="kyc-card-icon">💰</div>
+        <div>
+          <div class="kyc-card-title">Plánovaný objem investic</div>
+          <div class="kyc-card-sub">Orientační informace pro AML hodnocení rizika</div>
+        </div>
+      </div>
+      <div class="kyc-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Plánovaná roční investice</label>
+            <select class="form-select">
+              <option>Do 50 000 Kč</option>
+              <option>50 000 – 200 000 Kč</option>
+              <option selected>200 000 – 1 000 000 Kč</option>
+              <option>Nad 1 000 000 Kč</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Počet plánovaných transakcí/rok</label>
+            <select class="form-select">
+              <option>1–3</option>
+              <option selected>4–12</option>
+              <option>Více než 12</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kyc-nav">
+      <button class="btn-back" onclick="goStep(3)">← Zpět</button>
+      <button class="btn-next" onclick="goStep(5)">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- KROK 5 — Souhlasy -->
+  <div class="step-panel" id="panel-5">
+    <h2 class="kyc-section-title">Souhlasy & potvrzení</h2>
+    <p class="kyc-section-sub">Potvrďte následující prohlášení pro dokončení KYC. Všechny body jsou povinné.</p>
+
+    <div class="consent-block">
+      <div class="consent-title">Povinné souhlasy</div>
+      <div class="consent-item">
+        <input type="checkbox" class="checkbox-input" id="c1">
+        <label class="consent-text" for="c1">Potvrzuji, že všechny uvedené údaje jsou pravdivé, úplné a aktuální, a jsem si vědom/a trestněprávních důsledků uvedení nepravdivých informací.</label>
+      </div>
+      <div class="consent-item">
+        <input type="checkbox" class="checkbox-input" id="c2">
+        <label class="consent-text" for="c2">Souhlasím se zpracováním osobních údajů pro účely KYC/AML ověření dle <a href="#">zásad ochrany osobních údajů</a> a nařízení GDPR.</label>
+      </div>
+      <div class="consent-item">
+        <input type="checkbox" class="checkbox-input" id="c3">
+        <label class="consent-text" for="c3">Beru na vědomí, že Housio je povinnou osobou dle zákona č. 253/2008 Sb. a je povinen hlásit podezřelé obchody příslušným orgánům.</label>
+      </div>
+      <div class="consent-item">
+        <input type="checkbox" class="checkbox-input" id="c4">
+        <label class="consent-text" for="c4">Souhlasím s <a href="#">obchodními podmínkami</a> platformy Housio a potvrzuji, že jsem se s nimi seznámil/a.</label>
+      </div>
+      <div class="consent-item">
+        <input type="checkbox" class="checkbox-input" id="c5">
+        <label class="consent-text" for="c5">Prohlašuji, že investuji vlastní prostředky a nejsem zastupitelem třetí osoby, pokud tak není výslovně uvedeno.</label>
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-title">Volitelné</div>
+      <div class="consent-item">
+        <input type="checkbox" class="checkbox-input" id="c6" checked>
+        <label class="consent-text" for="c6">Souhlasím se zasíláním informací o nových nemovitostech a příležitostech na zadaný e-mail.</label>
+      </div>
+    </div>
+
+    <div class="kyc-nav">
+      <button class="btn-back" onclick="goStep(4)">← Zpět</button>
+      <button class="btn-next" onclick="goStep('done')">Odeslat ke schválení ✓</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div class="step-panel" id="panel-done">
+    <div class="success-screen">
+      <div class="success-icon">🎉</div>
+      <h2 class="success-title">KYC odesláno!</h2>
+      <p class="success-sub">Vaše dokumenty jsme obdrželi a nyní je zpracováváme. Obvyklá doba ověření je 1–2 pracovní dny.</p>
+      <div class="success-steps">
+        <div class="success-step">
+          <span class="success-step-icon">✅</span>
+          <div class="success-step-text"><strong>Osobní údaje</strong> přijaty a uloženy</div>
+        </div>
+        <div class="success-step">
+          <span class="success-step-icon">✅</span>
+          <div class="success-step-text"><strong>Doklady</strong> nahrány ke kontrole</div>
+        </div>
+        <div class="success-step">
+          <span class="success-step-icon">⏳</span>
+          <div class="success-step-text"><strong>Ověření identity</strong> — probíhá (1–2 prac. dny)</div>
+        </div>
+        <div class="success-step">
+          <span class="success-step-icon">🔒</span>
+          <div class="success-step-text"><strong>Aktivace účtu</strong> — po schválení KYC</div>
+        </div>
+      </div>
+      <a href="dashboard.html" class="btn-dashboard">Přejít do dashboardu →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentStep = 2;
+
+function goStep(step) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  if (step === 'done') {
+    document.getElementById('panel-done').classList.add('active');
+    // mark all steps done
+    [2,3,4,5].forEach(i => {
+      const s = document.getElementById('s'+i);
+      s.classList.remove('active');
+      s.classList.add('done');
+      s.querySelector('.step-circle').textContent = '✓';
+    });
+    return;
+  }
+  document.getElementById('panel-'+step).classList.add('active');
+  // update stepper
+  for (let i = 2; i <= 5; i++) {
+    const s = document.getElementById('s'+i);
+    s.classList.remove('active','done');
+    if (i < step) {
+      s.classList.add('done');
+      s.querySelector('.step-circle').textContent = '✓';
+    } else if (i === step) {
+      s.classList.add('active');
+      s.querySelector('.step-circle').textContent = i;
+    } else {
+      s.querySelector('.step-circle').textContent = i;
+    }
+  }
+  currentStep = step;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectDoc(btn) {
+  document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function selectRadio(item, groupId) {
+  document.querySelectorAll('#'+groupId+' .radio-item').forEach(i => i.classList.remove('selected'));
+  item.classList.add('selected');
+}
+
+function handleFile(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const prev = document.getElementById(previewId);
+  prev.style.display = 'block';
+  const mb = (file.size / 1024 / 1024).toFixed(1);
+  document.getElementById(previewId+'-name').textContent = file.name;
+  document.getElementById(previewId+'-size').textContent = mb + ' MB';
+}
+
+function handleDrop(e, zoneId, previewId) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const prev = document.getElementById(previewId);
+  prev.style.display = 'block';
+  const mb = (file.size / 1024 / 1024).toFixed(1);
+  document.getElementById(previewId+'-name').textContent = file.name;
+  document.getElementById(previewId+'-size').textContent = mb + ' MB';
+}
+</script>
+</body>
+</html>

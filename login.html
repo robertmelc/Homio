@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housio — Přihlášení & Registrace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #15150e;
+  --bg2:          #1c1c13;
+  --bg3:          #222218;
+  --green:        #c8f562;
+  --glass-bg:     rgba(255,255,255,0.04);
+  --glass-border: rgba(200,245,98,0.1);
+  --glass-hover:  rgba(200,245,98,0.22);
+  --text:         #f0ede6;
+  --muted:        #7a7a6a;
+  --danger:       #f87171;
+  --card-r:       20px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  background: var(--bg2);
+  border-right: 1px solid var(--glass-border);
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem;
+  position: relative; overflow: hidden;
+  min-height: 100vh;
+}
+.left-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(100px); pointer-events: none;
+}
+.orb1 { width: 400px; height: 400px; background: rgba(200,245,98,0.07); bottom: -80px; right: -80px; }
+.orb2 { width: 250px; height: 250px; background: rgba(200,245,98,0.04); top: 100px; left: -50px; }
+
+.left-logo a {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; font-weight: 800;
+  color: var(--text); text-decoration: none;
+}
+.left-logo a span { color: var(--green); }
+
+.left-content { position: relative; z-index: 2; }
+.left-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(200,245,98,0.08);
+  border: 1px solid rgba(200,245,98,0.15);
+  border-radius: 100px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.72rem; color: var(--green);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+.left-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--green); border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(0.8); }
+}
+.left-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.02em; margin-bottom: 1.25rem;
+}
+.left-heading em { font-style: italic; color: var(--green); }
+.left-sub {
+  font-size: 0.95rem; color: var(--muted);
+  line-height: 1.7; font-weight: 300;
+  max-width: 380px; margin-bottom: 3rem;
+}
+
+.left-stats {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.left-stat {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px; padding: 1rem 1.25rem;
+}
+.left-stat-icon {
+  width: 40px; height: 40px;
+  background: rgba(200,245,98,0.1);
+  border: 1px solid rgba(200,245,98,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+.left-stat-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 800; color: var(--green);
+}
+.left-stat-key { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+.left-footer { font-size: 0.75rem; color: var(--muted); }
+.left-footer a { color: var(--muted); text-decoration: underline; }
+
+/* RIGHT PANEL */
+.right-panel {
+  display: flex; align-items: center; justify-content: center;
+  padding: 3rem 2rem;
+  min-height: 100vh;
+}
+.auth-box {
+  width: 100%; max-width: 420px;
+}
+
+/* Mode toggle */
+.mode-toggle {
+  display: flex;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 2.5rem;
+}
+.mode-btn {
+  flex: 1; padding: 0.65rem;
+  border-radius: 8px; border: none;
+  background: none; color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: rgba(200,245,98,0.12);
+  color: var(--green);
+  border: 1px solid rgba(200,245,98,0.2);
+}
+
+.auth-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem; font-weight: 800;
+  letter-spacing: -0.02em; margin-bottom: 0.5rem;
+}
+.auth-sub {
+  font-size: 0.875rem; color: var(--muted);
+  margin-bottom: 2rem; line-height: 1.5;
+}
+
+/* Form */
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block;
+  font-size: 0.72rem; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.45rem;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: rgba(200,245,98,0.4);
+  box-shadow: 0 0 0 3px rgba(200,245,98,0.06);
+}
+.form-input::placeholder { color: var(--muted); }
+.form-input-wrap { position: relative; }
+.form-input-icon {
+  position: absolute; right: 1rem; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem; cursor: pointer; opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.form-input-icon:hover { opacity: 1; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+.form-hint {
+  font-size: 0.72rem; color: var(--muted);
+  margin-top: 0.35rem; padding-left: 0.25rem;
+}
+.form-hint.error { color: var(--danger); }
+
+/* Password strength */
+.pw-strength { margin-top: 0.5rem; }
+.pw-bars {
+  display: flex; gap: 3px; margin-bottom: 0.3rem;
+}
+.pw-bar {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  transition: background 0.3s;
+}
+.pw-bar.weak   { background: var(--danger); }
+.pw-bar.medium { background: var(--warning); }
+.pw-bar.strong { background: var(--green); }
+.pw-label { font-size: 0.68rem; color: var(--muted); }
+
+/* Divider */
+.divider {
+  display: flex; align-items: center; gap: 1rem;
+  margin: 1.5rem 0; color: var(--muted); font-size: 0.78rem;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--glass-border);
+}
+
+/* OAuth */
+.oauth-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.85rem;
+  color: var(--text); font-size: 0.9rem;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 0.75rem;
+}
+.oauth-btn:hover { border-color: var(--glass-hover); background: rgba(255,255,255,0.03); }
+.oauth-icon { font-size: 1.1rem; }
+
+/* Checkbox */
+.checkbox-wrap {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  margin-bottom: 1.5rem; cursor: pointer;
+}
+.checkbox-input {
+  width: 18px; height: 18px; flex-shrink: 0;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 5px;
+  appearance: none; cursor: pointer;
+  position: relative; margin-top: 1px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.checkbox-input:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+.checkbox-input:checked::after {
+  content: '✓'; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 0.7rem; color: var(--bg); font-weight: 700;
+}
+.checkbox-label { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.checkbox-label a { color: var(--green); text-decoration: none; }
+
+/* Submit */
+.btn-submit {
+  width: 100%; padding: 1rem;
+  background: var(--green); color: var(--bg);
+  font-weight: 700; font-size: 0.95rem;
+  border: none; border-radius: 12px;
+  cursor: pointer; transition: opacity 0.2s, transform 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 1.25rem;
+}
+.btn-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.auth-switch {
+  text-align: center; font-size: 0.82rem; color: var(--muted);
+}
+.auth-switch a { color: var(--green); text-decoration: none; cursor: pointer; }
+.auth-switch a:hover { text-decoration: underline; }
+
+/* Forgot */
+.forgot {
+  text-align: right; font-size: 0.75rem;
+  margin-top: -0.5rem; margin-bottom: 1.25rem;
+}
+.forgot a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.forgot a:hover { color: var(--green); }
+
+@media (max-width: 900px) {
+  body { grid-template-columns: 1fr; }
+  .left-panel { display: none; }
+  .right-panel { padding: 2rem 1.5rem; align-items: flex-start; padding-top: 3rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- LEFT -->
+<div class="left-panel">
+  <div class="left-orb orb1"></div>
+  <div class="left-orb orb2"></div>
+
+  <div class="left-logo"><a href="index.html"><span>H</span>ousio</a></div>
+
+  <div class="left-content">
+    <div class="left-tag">Realitní platforma</div>
+    <h2 class="left-heading">Investuj do<br><em>nemovitostí</em><br>chytře.</h2>
+    <p class="left-sub">Smluvní podíl na výnosu z pronájmu. Bez banky, bez kryptoměn. Od 2 000 EUR.</p>
+    <div class="left-stats">
+      <div class="left-stat">
+        <div class="left-stat-icon">📈</div>
+        <div>
+          <div class="left-stat-val">8–11 % p.a.</div>
+          <div class="left-stat-key">Průměrný roční výnos</div>
+        </div>
+      </div>
+      <div class="left-stat">
+        <div class="left-stat-icon">🏠</div>
+        <div>
+          <div class="left-stat-val">3 nemovitosti</div>
+          <div class="left-stat-key">Aktuálně otevřeno k investici</div>
+        </div>
+      </div>
+      <div class="left-stat">
+        <div class="left-stat-icon">🛡️</div>
+        <div>
+          <div class="left-stat-val">100% smluvní základ</div>
+          <div class="left-stat-key">Dle českého práva · bez MiCA</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="left-footer">
+    © 2026 Housio · <a href="#">housio.app</a> · Pracovní název
+  </div>
+</div>
+
+<!-- RIGHT -->
+<div class="right-panel">
+  <div class="auth-box">
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-login" onclick="showMode('login')">Přihlášení</button>
+      <button class="mode-btn" id="btn-register" onclick="showMode('register')">Registrace</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <h1 class="auth-title">Vítej zpátky</h1>
+      <p class="auth-sub">Přihlas se do svého investor účtu.</p>
+
+      <button class="oauth-btn">
+        <span class="oauth-icon">G</span> Pokračovat přes Google
+      </button>
+
+      <div class="divider">nebo e-mailem</div>
+
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" placeholder="jan@novak.cz">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Heslo</label>
+        <div class="form-input-wrap">
+          <input class="form-input" type="password" id="pw-login" placeholder="••••••••" style="padding-right:2.8rem">
+          <span class="form-input-icon" onclick="togglePw('pw-login', this)">👁</span>
+        </div>
+        <div class="forgot"><a href="#">Zapomněli jste heslo?</a></div>
+      </div>
+
+      <button class="btn-submit" onclick="window.location.href='dashboard.html'">Přihlásit se →</button>
+
+      <div class="auth-switch">
+        Ještě nemáte účet? <a onclick="showMode('register')">Zaregistrujte se</a>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="display:none">
+      <h1 class="auth-title">Vytvořit účet</h1>
+      <p class="auth-sub">Začněte investovat do nemovitostí za pár minut.</p>
+
+      <button class="oauth-btn">
+        <span class="oauth-icon">G</span> Registrovat přes Google
+      </button>
+
+      <div class="divider">nebo e-mailem</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Jméno</label>
+          <input class="form-input" type="text" placeholder="Jan">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Příjmení</label>
+          <input class="form-input" type="text" placeholder="Novák">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" placeholder="jan@novak.cz">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon</label>
+        <input class="form-input" type="tel" placeholder="+420 777 123 456">
+        <div class="form-hint">Potřebujeme pro ověření účtu (SMS).</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Heslo</label>
+        <div class="form-input-wrap">
+          <input class="form-input" type="password" id="pw-reg" placeholder="Min. 8 znaků" style="padding-right:2.8rem" oninput="checkPw(this.value)">
+          <span class="form-input-icon" onclick="togglePw('pw-reg', this)">👁</span>
+        </div>
+        <div class="pw-strength">
+          <div class="pw-bars">
+            <div class="pw-bar" id="pb1"></div>
+            <div class="pw-bar" id="pb2"></div>
+            <div class="pw-bar" id="pb3"></div>
+            <div class="pw-bar" id="pb4"></div>
+          </div>
+          <div class="pw-label" id="pw-label">Zadejte heslo</div>
+        </div>
+      </div>
+
+      <label class="checkbox-wrap">
+        <input type="checkbox" class="checkbox-input">
+        <span class="checkbox-label">Souhlasím s <a href="#">podmínkami použití</a> a <a href="#">zásadami ochrany osobních údajů</a>.</span>
+      </label>
+
+      <button class="btn-submit" onclick="window.location.href='kyc.html'">Vytvořit účet a pokračovat na KYC →</button>
+
+      <div class="auth-switch">
+        Už máte účet? <a onclick="showMode('login')">Přihlaste se</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showMode(mode) {
+  document.getElementById('form-login').style.display    = mode === 'login'    ? 'block' : 'none';
+  document.getElementById('form-register').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('btn-login').classList.toggle('active',    mode === 'login');
+  document.getElementById('btn-register').classList.toggle('active', mode === 'register');
+}
+
+function togglePw(id, icon) {
+  const inp = document.getElementById(id);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  icon.style.opacity = show ? '1' : '0.5';
+}
+
+function checkPw(val) {
+  const bars = [1,2,3,4].map(i => document.getElementById('pb'+i));
+  const label = document.getElementById('pw-label');
+  bars.forEach(b => { b.className = 'pw-bar'; });
+  if (!val) { label.textContent = 'Zadejte heslo'; return; }
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const cls   = score <= 1 ? 'weak' : score === 2 ? 'medium' : 'strong';
+  const texts = ['', 'Slabé', 'Slabé', 'Střední', 'Silné'];
+  for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+  label.textContent = texts[score];
+  label.style.color = cls === 'weak' ? 'var(--danger)' : cls === 'medium' ? 'var(--warning)' : 'var(--green)';
+}
+</script>
+</body>
+</html>
